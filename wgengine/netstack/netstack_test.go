@@ -45,13 +45,14 @@ func TestInjectInboundLeak(t *testing.T) {
 			t.Logf(format, args...)
 		}
 	}
-	sys := new(tsd.System)
+	sys := tsd.NewSystem()
 	eng, err := wgengine.NewUserspaceEngine(logf, wgengine.Config{
 		Tun:           tunDev,
 		Dialer:        dialer,
 		SetSubsystem:  sys.Set,
 		HealthTracker: sys.HealthTracker(),
 		Metrics:       sys.UserMetricsRegistry(),
+		EventBus:      sys.Bus.Get(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -101,7 +102,7 @@ func getMemStats() (ms runtime.MemStats) {
 
 func makeNetstack(tb testing.TB, config func(*Impl)) *Impl {
 	tunDev := tstun.NewFake()
-	sys := &tsd.System{}
+	sys := tsd.NewSystem()
 	sys.Set(new(mem.Store))
 	dialer := new(tsdial.Dialer)
 	logf := tstest.WhileTestRunningLogger(tb)
@@ -111,6 +112,7 @@ func makeNetstack(tb testing.TB, config func(*Impl)) *Impl {
 		SetSubsystem:  sys.Set,
 		HealthTracker: sys.HealthTracker(),
 		Metrics:       sys.UserMetricsRegistry(),
+		EventBus:      sys.Bus.Get(),
 	})
 	if err != nil {
 		tb.Fatal(err)
